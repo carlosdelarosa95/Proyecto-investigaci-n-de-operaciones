@@ -254,6 +254,58 @@
     };
   }
 
+  function algebraicResponse(input, context) {
+    const text = plain(input);
+    const valueMatch = text.match(/\bx\s*(?:=|vale|es)\s*(-?\d+(?:[.,]\d+)?)/);
+    const pendingExpression = context?.pending?.kind === "algebra";
+    if (!pendingExpression && !valueMatch && /^[\d.,\s()+\-*/^]*\d\s*x\s*\d[\d.,\s()+\-*/^]*$/i.test(text)) return null;
+    let expression = pendingExpression ? context.pending.expression : "";
+
+    if (!expression) {
+      const withoutAssignment = text
+        .replace(/(?:,?\s*(?:para|si|cuando)\s+)?x\s*(?:=|vale|es)\s*-?\d+(?:[.,]\d+)?\s*$/, "")
+        .replace(/^(?:calcula|evalua|simplifica|resuelve)\s+/, "")
+        .replace(/[×·]/g, "*")
+        .replace(/,/g, ".")
+        .replace(/\s+/g, "")
+        .replace(/(\d|\))x/g, "$1*x")
+        .replace(/x(?=\d|\()/g, "x*")
+        .replace(/[.;:]$/, "");
+      if (/x/.test(withoutAssignment) && /[+\-*/^]/.test(withoutAssignment) && !/=/.test(withoutAssignment) && !/[^\dx.+\-*/^()]/.test(withoutAssignment)) {
+        expression = withoutAssignment;
+      }
+    }
+
+    if (!expression) return null;
+    if (!valueMatch) {
+      const denominator = expression.match(/\/\(([-+]?\d+(?:\.\d+)?)\)\^(\d+)/);
+      const denominatorNote = denominator
+        ? " El denominador (" + denominator[1] + ")^" + denominator[2] + " equivale a " + tidy(Number(denominator[1]) ** Number(denominator[2])) + "."
+        : "";
+      return {
+        type: "clarification",
+        message: "Reconocí una expresión algebraica con x." + denominatorNote + " Falta indicar el valor de x para obtener un resultado numérico.",
+        example: "Responde, por ejemplo: x = 2",
+        pending: { kind: "algebra", expression },
+      };
+    }
+
+    const xValue = scalar(valueMatch[1]);
+    const substituted = expression.replace(/x/g, "(" + xValue + ")");
+    const value = evaluateExpression(substituted);
+    return {
+      type: "calculation",
+      title: "Evaluación de expresión algebraica",
+      expression: expression.replace(/\*/g, " × ") + " con x = " + xValue,
+      value,
+      steps: [
+        "Sustituyo x por " + xValue + ".",
+        "La expresión numérica queda " + substituted.replace(/\*/g, " × ").replace(/\//g, " ÷ ") + ".",
+        "Aplico potencias y operaciones en orden para obtener " + value + ".",
+      ],
+      resolvedPending: "algebra",
+    };
+  }
   function continuationCalculation(input, context) {
     if (!Number.isFinite(context?.lastNumericResult)) return null;
     const text = plain(input);
@@ -636,6 +688,9 @@
       }
       if (domain) return remember(context, clean, domain);
 
+      const algebraic = algebraicResponse(clean, context);
+      if (algebraic) return remember(context, clean, algebraic);
+
       const equation = equationResponse(clean);
       if (equation) return remember(context, clean, equation);
 
@@ -686,3 +741,4 @@
     answerQuestion,
   };
 });
+
