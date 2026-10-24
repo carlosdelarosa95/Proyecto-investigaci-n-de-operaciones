@@ -47,9 +47,11 @@ button { cursor: pointer; }
   backdrop-filter: blur(12px);
 }
 .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
-.brand-mark { display: grid; place-items: center; width: 43px; height: 43px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.38); border-radius: 12px; color: #d9ffff; font-weight: 800; letter-spacing: .04em; }
-.brand div { min-width: 0; }
-.brand strong, .brand span { display: block; }
+.university-logo { display: grid; place-items: center; width: 56px; height: 56px; flex: 0 0 auto; padding: 3px; background: white; border: 1px solid rgba(255,255,255,.55); border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+.university-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.brand-copy { min-width: 0; }
+.brand strong, .brand span, .brand small { display: block; }
+.brand small { margin-bottom: 1px; color: #8ce0dc; font-size: .66rem; font-weight: 750; letter-spacing: .055em; text-transform: uppercase; }
 .brand strong { font-size: 1rem; letter-spacing: -.01em; }
 .brand span { color: #b9c9d8; font-size: .79rem; }
 .identity-button { max-width: 360px; padding: 8px 13px; color: white; text-align: right; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); border-radius: 11px; }
@@ -282,7 +284,9 @@ dialog form { padding: 28px; }
 
 @media (max-width: 720px) {
   .topbar { padding: 10px 14px; }
-  .brand span:not(.brand-mark), .identity-button small { display: none; }
+  .brand small, .brand-subtitle, .identity-button small { display: none; }
+  .university-logo { width: 48px; height: 48px; }
+  .brand strong { font-size: .82rem; }
   .identity-button { max-width: 160px; font-size: .72rem; }
   .app-shell { display: block; }
   .sidebar { position: sticky; top: 63px; z-index: 18; display: flex; width: 100%; height: auto; padding: 8px; overflow-x: auto; border-right: 0; border-bottom: 1px solid #d8dad6; }

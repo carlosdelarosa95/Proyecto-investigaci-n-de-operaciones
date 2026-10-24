@@ -38,6 +38,8 @@
       turns: 0,
       lastInput: "",
       lastResponse: null,
+      lastSubjectResponse: null,
+      lastTopic: "",
       lastNumericResult: null,
       pending: null,
     };
@@ -48,6 +50,10 @@
     context.turns = Number(context.turns || 0) + 1;
     context.lastInput = String(input);
     context.lastResponse = response;
+    if (!["conversation", "clarification", "error"].includes(response.type)) {
+      context.lastSubjectResponse = response;
+      context.lastTopic = response.title || response.type;
+    }
     if (Number.isFinite(response.value)) context.lastNumericResult = response.value;
     if (response.pending) context.pending = response.pending;
     if (response.resolvedPending) context.pending = null;
@@ -270,7 +276,8 @@
   function conceptAnswer(input) {
     const text = plain(input);
     const asksConcept = /^(que|como|cual|explica|define|para que|por que)|significa|concepto|diferencia/.test(text);
-    if (!asksConcept) return null;
+    const namesTopic = /^(?:(?:quiero|necesito|me gustaria|ayudame a)\s+)?(?:(?:aprender|entender|estudiar|saber)\s+)?(?:sobre\s+|acerca\s+de\s+)?(?:investigacion de operaciones|programacion lineal|metodo simplex|simplex|modelo de transporte|transporte|modelo de asignacion|asignacion|eoq|cantidad economica|punto de reorden|region factible|funcion objetivo|variables? de decision|restricciones?|holgura|inventario de seguridad)$/i.test(text);
+    if (!asksConcept && !namesTopic) return null;
     const concepts = [
       {
         pattern: /region factible/,
@@ -346,6 +353,89 @@
     return concepts.find((item) => item.pattern.test(text)) || null;
   }
 
+  function previousSubject(context) {
+    const response = context?.lastSubjectResponse || context?.lastResponse;
+    return response && !["conversation", "clarification", "error"].includes(response.type) ? response : null;
+  }
+
+  function topicSuggestions(response) {
+    const choices = {
+      calculation: ["¿Puedes explicarlo más sencillo?", "Ponme otro cálculo"],
+      concept: ["¿Para qué sirve?", "Ponme un ejercicio de ese tema"],
+      lp: ["¿Cómo obtuviste el óptimo?", "Ponme otro problema de programación lineal"],
+      eoq: ["Explícame la fórmula", "Ponme otro ejercicio de EOQ"],
+      transport: ["¿Cómo verifico el costo?", "Ponme otro ejercicio de transporte"],
+      assignment: ["¿Cómo verifico la asignación?", "Ponme otro ejercicio de asignación"]
+    };
+    return choices[response?.type] || ["Explícame programación lineal", "Hazme una pregunta para practicar"];
+  }
+
+  function explainPrevious(context, simple) {
+    const previous = previousSubject(context);
+    if (!previous) {
+      return { type: "conversation", title: "Empecemos juntos", answer: "Todavía no hay una respuesta anterior que pueda explicar. Dime qué tema estás estudiando o pega el ejercicio y comenzaré desde el primer paso.", suggestions: ["Quiero aprender programación lineal", "¿Qué es la región factible?"] };
+    }
+    if (previous.type === "calculation") {
+      const details = simple ? "Tomé los números en el orden indicado y apliqué la operación antes de escribir el resultado." : (previous.steps?.join(" ") || "Apliqué el orden de operaciones.");
+      return { type: "conversation", title: simple ? "Dicho de forma sencilla" : "Explicación del cálculo", answer: previous.expression + " produce " + previous.value + ". " + details, suggestions: topicSuggestions(previous) };
+    }
+    const explanations = {
+      lp: "Primero identifiqué las variables, la función objetivo y las restricciones. Después formé la región factible, evalué sus vértices y elegí el valor que optimiza Z.",
+      eoq: "Usé Q* = √(2DS/H) para equilibrar los costos de ordenar y mantener inventario. Si había datos de tiempo, también calculé el punto de reorden.",
+      transport: "Distribuí las unidades respetando cada oferta y demanda. Luego sumé cantidad × costo de todas las rutas usadas y comparé soluciones factibles.",
+      assignment: "Elegí una tarea distinta para cada recurso, evitando repeticiones, y comparé los totales hasta encontrar la mejor asignación.",
+      concept: previous.answer
+    };
+    return { type: "conversation", title: simple ? "Dicho de forma sencilla" : "Continuemos la explicación", answer: explanations[previous.type] || previous.answer || "Retomemos la respuesta anterior paso a paso.", suggestions: topicSuggestions(previous) };
+  }
+
+  function exerciseFor(text, context) {
+    const topic = text + " " + (context?.lastTopic || "");
+    if (/transporte/.test(topic)) return "Transporte costos: 4 8 / 6 5; oferta=30 20; demanda=25 25";
+    if (/asignacion/.test(topic)) return "Asignación mínima matriz: 7 4 8 / 5 6 3 / 9 2 7";
+    if (/eoq|inventario|reorden/.test(topic)) return "Calcula EOQ si D=10000, S=40, H=2, dias=360, entrega=4, seguridad=15";
+    if (/simplex|programacion lineal|region factible|lp/.test(topic)) return "Maximiza Z = 3x + 5y, sujeto a x <= 4; 2y <= 12; 3x + 2y <= 18";
+    return "¿Cuánto es 20% de 350? Después puedes preguntarme cómo lo calculé.";
+  }
+
+  function advancedConversationReply(input, context) {
+    const text = plain(input);
+    if (/^(hola|buenos dias|buenas tardes|buenas noches|hey|que tal)(?:[\s,;:].*)?$/.test(text)) {
+      return { type: "conversation", title: "¡Hola! ¿Qué te gustaría estudiar?", answer: "Estoy listo para conversar contigo, no necesitas escribir una orden exacta. Puedes contarme qué tema te cuesta, pedir una explicación, practicar con un ejercicio o darme un problema completo.", suggestions: ["Tengo examen, ¿por dónde empiezo?", "Quiero aprender programación lineal desde cero"] };
+    }
+    if (/como estas|como te va|todo bien/.test(text)) {
+      return { type: "conversation", title: "¡Muy bien y listo para ayudarte!", answer: "Podemos conversar de manera natural. ¿Quieres entender un tema, resolver un ejercicio o practicar para una evaluación?", suggestions: ["Explícame qué es optimizar", "Hazme una pregunta para practicar"] };
+    }
+    if (/quien eres|como te llamas|eres un (?:robot|asistente)/.test(text)) {
+      return { type: "conversation", title: "Soy tu asistente académico de IO", answer: "Fui preparado para explicar Investigación de Operaciones y matemáticas relacionadas. Trabajo directamente en este navegador, sin cuentas ni servicios de pago, y recuerdo el contexto de esta conversación.", suggestions: ["¿Qué puedes hacer?", "Quiero aprender desde cero"] };
+    }
+    if (/tengo (?:un )?examen|por donde empiezo|quiero aprender|quiero estudiar|desde cero|no se nada|ayudame a estudiar/.test(text)) {
+      return { type: "conversation", title: "Construyamos una ruta sencilla", answer: "Empecemos por tres ideas: 1) definir las variables de decisión, 2) expresar qué queremos maximizar o minimizar y 3) traducir los límites en restricciones. Después practicamos región factible y solución óptima. Dime cuál de esas partes deseas revisar primero.", suggestions: ["¿Qué son las variables de decisión?", "Explícame la función objetivo", "Ponme un ejercicio fácil"] };
+    }
+    if (/^(?:no entendi|no lo entiendo|me perdi|puedes repetir|repitelo|explicalo otra vez)\b[\s,;:]*(?:.*)?$/.test(text) || /mas (?:facil|sencillo)|en palabras simples/.test(text)) return explainPrevious(context, true);
+    if (/^(?:continua|continuemos|sigue|sigamos|si[\s,;:]+continuemos|si[\s,;:]+sigue)\b[\s,;:]*(?:.*)?$/.test(text)) return explainPrevious(context, false);
+    if (/para que sirve|en que se usa|cuando se utiliza|ejemplo de la vida real/.test(text)) {
+      const previous = previousSubject(context);
+      const uses = {
+        "Programación lineal": "Se usa para repartir recursos limitados —tiempo, dinero, materiales o personal— de la manera más conveniente.",
+        "Modelo de transporte": "Se usa para decidir cuánto enviar de cada origen a cada destino con el menor costo posible.",
+        "Modelo de asignación": "Se usa para emparejar personas, máquinas o vehículos con tareas sin repetir asignaciones.",
+        "Cantidad económica de pedido": "Se usa para decidir cuánto inventario pedir y evitar costos innecesarios.",
+        "Región factible": "Sirve para visualizar todas las decisiones que cumplen simultáneamente las limitaciones del problema."
+      };
+      return { type: "conversation", title: "Aplicación práctica", answer: uses[previous?.title] || "En Investigación de Operaciones sirve para convertir una decisión real en un modelo verificable y comparar alternativas antes de elegir.", suggestions: ["Ponme un ejemplo", "Hazme una pregunta para practicar"] };
+    }
+    if (/hazme una pregunta|preguntame algo|quiero practicar|ponme un ejercicio|dame un ejercicio/.test(text)) {
+      return { type: "conversation", title: "Práctica propuesta", answer: exerciseFor(text, context), suggestions: ["Dame una pista", "Muéstrame el procedimiento"] };
+    }
+    if (/^(si|claro|de acuerdo|esta bien|ok|vale)[\s,;:.]*$/.test(text)) {
+      return { type: "conversation", title: "Perfecto, seguimos", answer: "Elige una de estas opciones o cuéntame con tus propias palabras qué necesitas.", suggestions: topicSuggestions(previousSubject(context)) };
+    }
+    if (/pelicula|cancion|clima|futbol|receta|restaurante/.test(text)) {
+      return { type: "conversation", title: "Puedo conversar, con un enfoque académico", answer: "Ese tema queda fuera de este asistente. Si quieres, puedo relacionarlo con decisiones, optimización o cálculos; también podemos volver a programación lineal, transporte, asignación o inventarios.", suggestions: ["¿Qué es optimizar?", "Ponme un ejercicio de transporte"] };
+    }
+    return null;
+  }
   function conversationalReply(input, context) {
     const text = plain(input);
     if (/^(hola|buenos dias|buenas tardes|buenas noches|hey|que tal)$/.test(text)) {
@@ -525,6 +615,9 @@
     if (clean.length > 1600) return remember(context, clean, { type: "clarification", message: "La pregunta supera 1,600 caracteres. Divide el problema en partes más pequeñas." });
 
     try {
+      const advancedConversation = advancedConversationReply(clean, context);
+      if (advancedConversation) return remember(context, clean, advancedConversation);
+
       const conversation = conversationalReply(clean, context);
       if (conversation) return remember(context, clean, conversation);
 
@@ -564,9 +657,10 @@
     }
 
     const response = {
-      type: "clarification",
-      message: "Todavía no reconozco esa pregunta. Puedo conversar sobre Investigación de Operaciones y resolver cálculos, porcentajes, promedios, ecuaciones, programación lineal, transporte, asignación o EOQ.",
-      example: "Ejemplos: ¿Cuánto es 5x20? · Resuelve 2x + 5 = 15 · ¿Qué es la región factible?",
+      type: "conversation",
+      title: "Conversemos sobre tu pregunta",
+      answer: "Entiendo que quieres hablar de: «" + clean.slice(0, 180) + "». No pude convertirlo todavía en un cálculo o modelo. Cuéntame qué deseas obtener, qué datos tienes y qué parte necesitas entender; te ayudaré a formularlo paso a paso.",
+      suggestions: ["Ayúdame a plantear el problema", "¿Qué datos necesitas?", "Muéstrame un ejemplo parecido"],
     };
     return remember(context, clean, response);
   }

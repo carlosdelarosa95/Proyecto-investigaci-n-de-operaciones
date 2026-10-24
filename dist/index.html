@@ -11,10 +11,13 @@
   <a class="skip-link" href="#main">Saltar al contenido</a>
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true">IO</span>
-      <div>
+      <div class="university-logo" role="img" aria-label="Logotipo de la Universidad Mariano Gálvez de Guatemala">
+        <img src="assets/logo-umg.png" alt="Logotipo de la Universidad Mariano Gálvez de Guatemala">
+      </div>
+      <div class="brand-copy">
+        <small>Universidad Mariano Gálvez de Guatemala</small>
         <strong>Asistente de Investigación de Operaciones</strong>
-        <span>Soluciones explicadas y verificables</span>
+        <span class="brand-subtitle">Soluciones explicadas y verificables</span>
       </div>
     </div>
     <button class="identity-button" id="openIdentity" type="button" aria-haspopup="dialog">
@@ -74,7 +77,7 @@
 
       <section class="view" id="view-preguntas" aria-labelledby="questions-title">
         <div class="page-head">
-          <div><p class="eyebrow">Conversación con memoria</p><h1 id="questions-title">Pregunta, calcula y continúa la conversación</h1><p>Haz operaciones cotidianas, plantea preguntas conceptuales o escribe problemas completos. El asistente recuerda el resultado anterior y solicita los datos que falten.</p></div>
+          <div><p class="eyebrow">Conversación con memoria</p><h1 id="questions-title">Pregunta, calcula y continúa la conversación</h1><p>Conversa con palabras naturales, pide explicaciones, continúa una idea o escribe problemas completos. El asistente recuerda el tema anterior, propone preguntas y solicita los datos que falten.</p></div>
           <button class="secondary clear-chat-button" id="clearConversation" type="button" title="Borra los mensajes guardados en este navegador">Limpiar chat</button>
         </div>
 
@@ -84,7 +87,7 @@
             <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
             <form class="question-form" id="questionForm">
               <label for="questionInput" class="sr-only">Pregunta o ejercicio</label>
-              <textarea id="questionInput" rows="3" maxlength="1600" placeholder="Ejemplo: ¿Cuánto es 5x20? Después pregunta: ¿y dividido entre 4?"></textarea>
+              <textarea id="questionInput" rows="3" maxlength="1600" placeholder="Escribe con naturalidad: Tengo examen, explícamelo desde cero; o plantea un ejercicio completo."></textarea>
               <div class="question-actions"><small>Escribe como hablarías normalmente. Enter envía; Shift+Enter agrega una línea.</small><button class="primary" type="submit">Enviar pregunta</button></div>
             </form>
           </section>
