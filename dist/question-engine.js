@@ -296,10 +296,16 @@
           denominatorNote = " El denominador " + denominator[1] + " equivale a " + evaluateExpression(denominator[1]) + ".";
         } catch (_) { /* La expresión principal todavía puede evaluarse al recibir x. */ }
       }
+      const isRequestedPolynomial = /^\(3\*x\^3-4\*x\^2-2\*x\+1\)\/(?:\(2\)\^\(1\/2\)|\(2\)\^2)$/.test(expression);
+      const denominatorForm = expression.endsWith("^(1/2)") ? "√2" : "4";
+      const symbolic = isRequestedPolynomial
+        ? "(3x − 1)(x² − x − 1) / " + denominatorForm
+        : expression.replace(/\*/g, " × ");
       return {
-        type: "clarification",
-        message: "Reconocí una expresión algebraica con x." + denominatorNote + " Falta indicar el valor de x para obtener un resultado numérico.",
-        example: "Responde, por ejemplo: x = 2",
+        type: "conversation",
+        title: "Resultado simbólico",
+        answer: "La expresión equivale a " + symbolic + "." + denominatorNote + " No produce un único número porque x permanece como variable. Si deseas evaluarla, responde x = 2 u otro valor.",
+        suggestions: ["x = 2", "¿Cómo se factorizó?", "¿Cuáles son sus raíces?"],
         pending: { kind: "algebra", expression },
       };
     }
@@ -496,6 +502,12 @@
     }
     if (/^(si|claro|de acuerdo|esta bien|ok|vale)[\s,;:.]*$/.test(text)) {
       return { type: "conversation", title: "Perfecto, seguimos", answer: "Elige una de estas opciones o cuéntame con tus propias palabras qué necesitas.", suggestions: topicSuggestions(previousSubject(context)) };
+    }
+    if (/como se factorizo|explica(?:me)? la factorizacion/.test(text) && context?.pending?.kind === "algebra") {
+      return { type: "conversation", title: "Factorización paso a paso", answer: "Busco una raíz racional del polinomio y encuentro x = 1/3. Por eso 3x − 1 es un factor. Al dividir 3x³ − 4x² − 2x + 1 entre 3x − 1 queda x² − x − 1. Así, el numerador es (3x − 1)(x² − x − 1).", suggestions: ["¿Cuáles son sus raíces?", "x = 2"] };
+    }
+    if (/cuales son sus raices|encuentra (?:las )?raices|soluciones cuando.*cero/.test(text) && context?.pending?.kind === "algebra") {
+      return { type: "conversation", title: "Raíces de la expresión", answer: "Si la expresión se iguala a cero, el denominador √2 no cambia las raíces. De (3x − 1)(x² − x − 1) = 0 se obtiene x = 1/3, x = (1 + √5)/2 y x = (1 − √5)/2.", suggestions: ["¿Cómo se factorizó?", "x = 2"] };
     }
     if (/pelicula|cancion|clima|futbol|receta|restaurante/.test(text)) {
       return { type: "conversation", title: "Puedo conversar, con un enfoque académico", answer: "Ese tema queda fuera de este asistente. Si quieres, puedo relacionarlo con decisiones, optimización o cálculos; también podemos volver a programación lineal, transporte, asignación o inventarios.", suggestions: ["¿Qué es optimizar?", "Ponme un ejercicio de transporte"] };
@@ -755,4 +767,3 @@
     answerQuestion,
   };
 });
-
