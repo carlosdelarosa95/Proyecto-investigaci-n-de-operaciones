@@ -20,6 +20,17 @@
     return Number(String(value).replace(",", "."));
   }
 
+  function normalizeMathNotation(value) {
+    const superscriptDigits = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9" };
+    return String(value)
+      .replace(/[−–—]/g, "-")
+      .replace(/([x)\d])(?:¹⁄₂|¹\/₂|1⁄2|½)/g, "$1^(1/2)")
+      .replace(/([x)\d])⅓/g, "$1^(1/3)")
+      .replace(/([x)\d])¼/g, "$1^(1/4)")
+      .replace(/([x)\d])¾/g, "$1^(3/4)")
+      .replace(/([x)\d])([⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g, (_, base, exponent) => base + "^" + [...exponent].map((digit) => superscriptDigits[digit]).join(""));
+  }
+
   function coefficient(value) {
     const clean = String(value ?? "").replace(/\s/g, "");
     if (!clean || clean === "+") return 1;
@@ -147,7 +158,7 @@
   }
 
   function expressionFromText(input) {
-    let text = plain(input)
+    let text = normalizeMathNotation(plain(input))
       .replace(/^(?:cual\s+es\s+el\s+resultado\s+de|cuanto\s+(?:es|da)|calcula(?:r)?|resuelve|resultado\s+de|dime\s+cuanto\s+es|haz|multiplica)\s*/i, "")
       .replace(/elevado\s+a(?:\s+la)?/g, "^")
       .replace(/dividido\s+entre|dividido\s+por/g, "/")
@@ -262,7 +273,7 @@
     let expression = pendingExpression ? context.pending.expression : "";
 
     if (!expression) {
-      const withoutAssignment = text
+      const withoutAssignment = normalizeMathNotation(text)
         .replace(/(?:,?\s*(?:para|si|cuando)\s+)?x\s*(?:=|vale|es)\s*-?\d+(?:[.,]\d+)?\s*$/, "")
         .replace(/^(?:calcula|evalua|simplifica|resuelve)\s+/, "")
         .replace(/[×·]/g, "*")
@@ -278,10 +289,13 @@
 
     if (!expression) return null;
     if (!valueMatch) {
-      const denominator = expression.match(/\/\(([-+]?\d+(?:\.\d+)?)\)\^(\d+)/);
-      const denominatorNote = denominator
-        ? " El denominador (" + denominator[1] + ")^" + denominator[2] + " equivale a " + tidy(Number(denominator[1]) ** Number(denominator[2])) + "."
-        : "";
+      const denominator = expression.match(/\/(\([-+]?\d+(?:\.\d+)?\)(?:\^\([-+]?\d+(?:\.\d+)?\/[-+]?\d+(?:\.\d+)?\)|\^\d+)?)$/);
+      let denominatorNote = "";
+      if (denominator) {
+        try {
+          denominatorNote = " El denominador " + denominator[1] + " equivale a " + evaluateExpression(denominator[1]) + ".";
+        } catch (_) { /* La expresión principal todavía puede evaluarse al recibir x. */ }
+      }
       return {
         type: "clarification",
         message: "Reconocí una expresión algebraica con x." + denominatorNote + " Falta indicar el valor de x para obtener un resultado numérico.",
