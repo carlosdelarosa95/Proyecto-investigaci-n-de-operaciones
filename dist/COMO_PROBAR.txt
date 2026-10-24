@@ -1,0 +1,33 @@
+ASISTENTE DE INVESTIGACIÓN DE OPERACIONES
+PRUEBA SIN INSTALAR PROGRAMAS
+
+OPCIÓN 1: ENLACE PÚBLICO
+1. Abra el enlace que proporcionaron los estudiantes.
+2. No inicie sesión y no instale extensiones.
+3. Continúe con la ruta de verificación incluida abajo.
+
+OPCIÓN 2: COPIA LOCAL DE RESPALDO
+1. Extraiga por completo el ZIP recibido.
+2. Abra la carpeta extraída.
+3. Haga doble clic en index.html.
+4. Si Windows pregunta con qué aplicación abrirlo, elija Chrome, Edge o Firefox.
+
+No necesita Python, Ollama, Node.js, claves, cuentas ni conexión con la
+computadora de los estudiantes. Los cálculos se ejecutan en el navegador.
+
+RUTA DE VERIFICACIÓN DE 5 MINUTOS
+1. Entre a Preguntar.
+2. Escriba: ¿Cuánto es 5*20 y dámelo con procedimiento? Debe responder 100 y mostrar los pasos.
+3. Escriba: ¿y dividido entre 4? Debe recordar el resultado y responder 25.
+4. Escriba: ¿cómo lo calculaste? y confirme la explicación.
+5. Pulse Limpiar chat y confirme. Los mensajes anteriores deben desaparecer y debe mostrarse el saludo inicial.
+6. Escriba: Maximizar Z=40 por x más 30 por y, sujeto a 2x más y menor o igual que 100; x más 2y menor o igual que 80
+7. Confirme: x = 40, y = 20 y Z = 2200; pulse Ver gráfico y simplex.
+8. Escriba: Calcula EOQ si D=12000 y S=50. Cuando solicite H, responda: H=2.
+9. Abra Transporte, Asignación e Inventarios y pulse Cargar ejemplo.
+10. Abra Práctica guiada y pulse Generar nueva práctica.
+11. Responda el problema generado y confirme que muestra retroalimentación, pista y solución explicada.
+12. Abra Verificación y pulse Ejecutar autoverificación (debe mostrar 5/5).
+
+Si un dato está vacío o no es válido, la página muestra una advertencia y
+permite corregirlo sin cerrarse.

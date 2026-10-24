@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Asistente académico para resolver problemas de Investigación de Operaciones con procedimientos verificables.">
+  <title>Asistente de Investigación de Operaciones</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">IO</span>
+      <div>
+        <strong>Asistente de Investigación de Operaciones</strong>
+        <span>Soluciones explicadas y verificables</span>
+      </div>
+    </div>
+    <button class="identity-button" id="openIdentity" type="button" aria-haspopup="dialog">
+      <span id="identitySummary">Integrantes por completar</span>
+      <small>Editar identificación</small>
+    </button>
+  </header>
+
+  <div class="app-shell">
+    <nav class="sidebar" aria-label="Módulos del asistente">
+      <p class="nav-label">Módulos</p>
+      <button class="nav-item active" data-view="inicio" type="button"><span>01</span>Inicio</button>
+      <button class="nav-item" data-view="preguntas" type="button"><span>02</span>Preguntar</button>
+      <button class="nav-item" data-view="lineal" type="button"><span>03</span>Programación lineal</button>
+      <button class="nav-item" data-view="transporte" type="button"><span>04</span>Transporte</button>
+      <button class="nav-item" data-view="asignacion" type="button"><span>05</span>Asignación</button>
+      <button class="nav-item" data-view="inventarios" type="button"><span>06</span>Inventarios</button>
+      <button class="nav-item" data-view="practica" type="button"><span>07</span>Práctica guiada</button>
+      <button class="nav-item" data-view="verificacion" type="button"><span>08</span>Verificación</button>
+      <div class="offline-badge"><i></i> Sin cuentas ni API de pago</div>
+    </nav>
+
+    <main id="main">
+      <section class="view active" id="view-inicio" aria-labelledby="inicio-title">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">Herramienta académica interactiva</p>
+            <h1 id="inicio-title">Convierte datos en decisiones explicadas</h1>
+            <p class="hero-copy">Ingresa problemas nuevos, revisa el modelo matemático y sigue el procedimiento hasta la respuesta final. Todos los cálculos se realizan en tu navegador.</p>
+            <div class="hero-actions">
+              <button class="primary jump" data-target="preguntas" type="button">Hacer una pregunta</button>
+              <button class="secondary jump" data-target="lineal" type="button">Probar ejemplo de evaluación</button>
+            </div>
+          </div>
+          <div class="hero-visual" aria-label="Resumen de capacidades">
+            <div class="metric"><strong>7</strong><span>módulos interactivos</span></div>
+            <div class="metric"><strong>10</strong><span>ejercicios con retroalimentación</span></div>
+            <div class="metric"><strong>0</strong><span>instalaciones o cuentas</span></div>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div><p class="eyebrow">Qué puede resolver</p><h2>Funciones de la asignatura</h2></div>
+        </div>
+        <div class="capability-grid">
+          <button class="capability jump" data-target="lineal" type="button"><b>PL</b><span><strong>Programación lineal</strong><small>Modelación, región factible, vértices, óptimo y simplex.</small></span></button>
+          <button class="capability jump" data-target="transporte" type="button"><b>TR</b><span><strong>Transporte</strong><small>Distribución óptima, balance automático y costo mínimo.</small></span></button>
+          <button class="capability jump" data-target="asignacion" type="button"><b>AS</b><span><strong>Asignación</strong><small>Asignación uno a uno para minimizar o maximizar.</small></span></button>
+          <button class="capability jump" data-target="inventarios" type="button"><b>EOQ</b><span><strong>Inventarios</strong><small>Lote económico, frecuencia y punto de reorden.</small></span></button>
+        </div>
+
+        <div class="integrity-note">
+          <strong>Diseñado para evaluación.</strong>
+          <p>El resultado incluye interpretación, fórmulas, sustitución, procedimiento y comprobaciones. Las entradas incompletas o incompatibles generan advertencias claras.</p>
+        </div>
+      </section>
+
+      <section class="view" id="view-preguntas" aria-labelledby="questions-title">
+        <div class="page-head">
+          <div><p class="eyebrow">Conversación con memoria</p><h1 id="questions-title">Pregunta, calcula y continúa la conversación</h1><p>Haz operaciones cotidianas, plantea preguntas conceptuales o escribe problemas completos. El asistente recuerda el resultado anterior y solicita los datos que falten.</p></div>
+          <button class="secondary clear-chat-button" id="clearConversation" type="button" title="Borra los mensajes guardados en este navegador">Limpiar chat</button>
+        </div>
+
+        <div class="chat-layout">
+          <section class="panel chat-panel" aria-label="Conversación con el asistente">
+            <div class="chat-status"><i></i><span><strong>Asistente conversacional activo</strong><small>Recuerda el contexto · sin cuentas · sin API · funciona localmente</small></span></div>
+            <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
+            <form class="question-form" id="questionForm">
+              <label for="questionInput" class="sr-only">Pregunta o ejercicio</label>
+              <textarea id="questionInput" rows="3" maxlength="1600" placeholder="Ejemplo: ¿Cuánto es 5x20? Después pregunta: ¿y dividido entre 4?"></textarea>
+              <div class="question-actions"><small>Escribe como hablarías normalmente. Enter envía; Shift+Enter agrega una línea.</small><button class="primary" type="submit">Enviar pregunta</button></div>
+            </form>
+          </section>
+
+          <aside class="question-guide">
+            <div class="panel guide-card">
+              <p class="eyebrow">Ejemplos para probar</p>
+              <h2>Prueba la conversación</h2>
+              <button class="question-example" type="button" data-question="¿Cuánto es 5*20 y dámelo con procedimiento?">5 × 20 con procedimiento</button>
+              <button class="question-example" type="button" data-question="Resuelve 2x + 5 = 15">Ecuación sencilla</button>
+              <button class="question-example" type="button" data-question="¿Cuánto es 20% de 350?">Porcentaje</button>
+              <button class="question-example" type="button" data-question="Maximiza Z = 40x + 30y, sujeto a 2x + y <= 100; x + 2y <= 80">Programación lineal completa</button>
+              <button class="question-example" type="button" data-question="Calcula EOQ si D=12000, S=50, H=2, dias=360, entrega=5, seguridad=20">EOQ con datos nuevos</button>
+              <button class="question-example" type="button" data-question="Transporte costos: 8 6 10 / 9 12 13 / 14 9 16; oferta=35 50 40; demanda=45 20 60">Problema de transporte</button>
+              <button class="question-example" type="button" data-question="¿Qué significa región factible y cómo se identifica?">Pregunta conceptual</button>
+            </div>
+            <div class="guide-note"><strong>Conversación real</strong><p>Después de un resultado prueba “¿y la mitad?”, “¿cómo lo calculaste?” o “dame otro ejemplo”. Usa “Limpiar chat” cuando quieras comenzar desde cero.</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-lineal" aria-labelledby="lineal-title">
+        <div class="page-head">
+          <div><p class="eyebrow">Modelación y optimización</p><h1 id="lineal-title">Programación lineal de dos variables</h1><p>Resuelve problemas nuevos por vértices y, cuando aplica, muestra las iteraciones del método simplex.</p></div>
+          <button class="secondary" id="loadRubricExample" type="button">Cargar ejemplo solicitado</button>
+        </div>
+
+        <div class="workspace-grid">
+          <form class="panel input-panel" id="lpForm" novalidate>
+            <div class="panel-title"><span>1</span><div><h2>Datos del modelo</h2><p>Define la decisión y las restricciones.</p></div></div>
+            <div class="field-row three">
+              <label>Objetivo<select id="lpGoal"><option value="max">Maximizar</option><option value="min">Minimizar</option></select></label>
+              <label>Coeficiente de x<input id="lpC1" type="number" step="any" value="40"></label>
+              <label>Coeficiente de y<input id="lpC2" type="number" step="any" value="30"></label>
+            </div>
+            <p class="formula-preview" id="objectivePreview">Max Z = 40x + 30y</p>
+            <div class="table-label"><span>Restricciones</span><button class="text-button" id="addConstraint" type="button">+ Agregar</button></div>
+            <div id="constraintRows" class="constraint-list"></div>
+            <p class="help">Se aplica x ≥ 0, y ≥ 0 automáticamente.</p>
+            <button class="primary full" type="submit">Resolver y explicar</button>
+          </form>
+
+          <div class="panel result-panel" id="lpResult" aria-live="polite">
+            <div class="empty-state"><span>↗</span><h2>Resultado listo para explicar</h2><p>Carga el ejemplo o ingresa datos y pulsa Resolver.</p></div>
+          </div>
+        </div>
+
+        <div class="panel graph-panel hidden" id="graphPanel">
+          <div class="panel-title"><span>2</span><div><h2>Método gráfico</h2><p>Rectas, región factible y punto óptimo.</p></div></div>
+          <div id="lpGraph" class="graph-wrap"></div>
+        </div>
+
+        <div class="panel simplex-panel hidden" id="simplexPanel">
+          <div class="panel-title"><span>3</span><div><h2>Método simplex</h2><p>Disponible para maximización con restricciones ≤ y términos independientes no negativos.</p></div></div>
+          <div id="simplexResult"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-transporte" aria-labelledby="transport-title">
+        <div class="page-head"><div><p class="eyebrow">Distribución</p><h1 id="transport-title">Modelo de transporte</h1><p>Encuentra el costo mínimo de enviar unidades desde varios orígenes hacia varios destinos.</p></div><button class="secondary" id="loadTransportExample" type="button">Cargar ejemplo</button></div>
+        <div class="workspace-grid">
+          <form class="panel input-panel" id="transportForm" novalidate>
+            <div class="panel-title"><span>1</span><div><h2>Costos, oferta y demanda</h2><p>Separa valores con espacios y filas con saltos de línea.</p></div></div>
+            <label>Matriz de costos<textarea id="transportCosts" rows="5" spellcheck="false">8 6 10&#10;9 12 13&#10;14 9 16</textarea></label>
+            <div class="field-row two"><label>Oferta<input id="transportSupply" value="35 50 40"></label><label>Demanda<input id="transportDemand" value="45 20 60"></label></div>
+            <p class="help">Si oferta y demanda no coinciden, se agrega un origen o destino ficticio con costo cero y se informa.</p>
+            <button class="primary full" type="submit">Optimizar distribución</button>
+          </form>
+          <div class="panel result-panel" id="transportResult" aria-live="polite"><div class="empty-state"><span>⇄</span><h2>Plan de envíos</h2><p>El resultado mostrará cantidades por ruta y costo total.</p></div></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-asignacion" aria-labelledby="assignment-title">
+        <div class="page-head"><div><p class="eyebrow">Recursos y tareas</p><h1 id="assignment-title">Modelo de asignación</h1><p>Asigna cada persona o recurso a una tarea diferente con el mejor valor total.</p></div><button class="secondary" id="loadAssignmentExample" type="button">Cargar ejemplo</button></div>
+        <div class="workspace-grid">
+          <form class="panel input-panel" id="assignmentForm" novalidate>
+            <div class="panel-title"><span>1</span><div><h2>Matriz de valores</h2><p>Cada fila es una persona y cada columna una tarea.</p></div></div>
+            <label>Criterio<select id="assignmentGoal"><option value="min">Minimizar costo o tiempo</option><option value="max">Maximizar beneficio o puntuación</option></select></label>
+            <label>Matriz<textarea id="assignmentCosts" rows="6" spellcheck="false">9 2 7 8&#10;6 4 3 7&#10;5 8 1 8&#10;7 6 9 4</textarea></label>
+            <button class="primary full" type="submit">Resolver asignación</button>
+          </form>
+          <div class="panel result-panel" id="assignmentResult" aria-live="polite"><div class="empty-state"><span>✓</span><h2>Asignación óptima</h2><p>Se mostrarán las parejas seleccionadas y el total.</p></div></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-inventarios" aria-labelledby="inventory-title">
+        <div class="page-head"><div><p class="eyebrow">Decisiones de inventario</p><h1 id="inventory-title">EOQ y punto de reorden</h1><p>Calcula cuánto pedir, cuántas órdenes realizar y cuándo emitir un nuevo pedido.</p></div><button class="secondary" id="loadInventoryExample" type="button">Cargar ejemplo</button></div>
+        <div class="workspace-grid">
+          <form class="panel input-panel" id="inventoryForm" novalidate>
+            <div class="panel-title"><span>1</span><div><h2>Datos anuales</h2><p>Usa unidades y moneda consistentes.</p></div></div>
+            <div class="field-row two"><label>Demanda anual D<input id="invDemand" type="number" step="any" value="12000"></label><label>Costo por pedido S<input id="invOrderCost" type="number" step="any" value="50"></label></div>
+            <div class="field-row two"><label>Mantenimiento anual H<input id="invHolding" type="number" step="any" value="2"></label><label>Días laborables<input id="invDays" type="number" step="any" value="360"></label></div>
+            <div class="field-row two"><label>Tiempo de entrega en días<input id="invLead" type="number" step="any" value="5"></label><label>Inventario de seguridad<input id="invSafety" type="number" step="any" value="20"></label></div>
+            <button class="primary full" type="submit">Calcular política</button>
+          </form>
+          <div class="panel result-panel" id="inventoryResult" aria-live="polite"><div class="empty-state"><span>◇</span><h2>Política de inventario</h2><p>Se mostrarán fórmula, sustitución, resultado e interpretación.</p></div></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-practica" aria-labelledby="practice-title">
+        <div class="page-head"><div><p class="eyebrow">Aprendizaje autónomo</p><h1 id="practice-title">Práctica con retroalimentación</h1><p>Diez ejercicios de dificultad progresiva y un generador de problemas nuevos con datos diferentes.</p></div><div class="practice-head-actions"><button class="primary" id="generatePractice" type="button">Generar nueva práctica</button><div class="score-pill"><span id="practiceScore">0 / 10</span><small>ejercicios base correctos</small></div></div></div>
+        <div class="practice-layout">
+          <aside class="exercise-index" id="exerciseIndex" aria-label="Lista de ejercicios"></aside>
+          <div class="panel exercise-card" id="exerciseCard"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-verificacion" aria-labelledby="verify-title">
+        <div class="page-head"><div><p class="eyebrow">Lista para el docente</p><h1 id="verify-title">Verificación rápida</h1><p>Una ruta corta para comprobar que la entrega cumple los lineamientos.</p></div><button class="secondary" id="runSelfCheck" type="button">Ejecutar autoverificación</button></div>
+        <div class="verification-grid">
+          <div class="panel checklist">
+            <h2>Prueba sugerida de 5 minutos</h2>
+            <ol>
+              <li><span>1</span><div><strong>Conversación</strong><p>Pregunte “¿Cuánto es 5x20?” y después “¿y dividido entre 4?”; debe responder 100 y 25.</p></div></li>
+              <li><span>2</span><div><strong>Programación lineal</strong><p>Escriba o cargue el ejemplo solicitado y confirme x = 40, y = 20, Z = 2200.</p></div></li>
+              <li><span>3</span><div><strong>Otros módulos</strong><p>Ejecute un caso de transporte, asignación y EOQ.</p></div></li>
+              <li><span>4</span><div><strong>Manejo de errores</strong><p>Deje un campo vacío para observar la advertencia sin bloquear la página.</p></div></li>
+              <li><span>5</span><div><strong>Práctica</strong><p>Pulse Generar nueva práctica, responda y revise la retroalimentación.</p></div></li>
+            </ol>
+          </div>
+          <div class="panel compliance">
+            <h2>Cobertura de requisitos</h2>
+            <div class="compliance-list" id="complianceList">
+              <p><i class="ok">✓</i><span><strong>Preguntas y datos nuevos</strong><small>La conversación recuerda contexto, calcula operaciones generales e interpreta ejercicios escritos.</small></span></p>
+              <p><i class="ok">✓</i><span><strong>Procedimientos y fórmulas</strong><small>Los resultados explican modelo, sustitución y respuesta.</small></span></p>
+              <p><i class="ok">✓</i><span><strong>Funciones de la asignatura</strong><small>PL, gráfico, simplex, transporte, asignación e inventarios.</small></span></p>
+              <p><i class="ok">✓</i><span><strong>Práctica y retroalimentación</strong><small>10 ejercicios base y generador de problemas nuevos con pistas y solución.</small></span></p>
+              <p><i class="ok">✓</i><span><strong>Acceso gratuito</strong><small>Funciona en navegador, sin cuenta personal ni API.</small></span></p>
+              <p><i class="pending" id="identityStatusIcon">!</i><span><strong>Identificación del equipo</strong><small id="identityCheckText">Complete los nombres de ambos integrantes antes de entregar.</small></span></p>
+            </div>
+            <div id="selfCheckResult" class="self-check-result" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="identityDialog">
+    <form method="dialog" id="identityForm">
+      <div class="dialog-head"><div><p class="eyebrow">Datos visibles en la entrega</p><h2>Identificación del equipo</h2></div><button class="icon-button" value="cancel" aria-label="Cerrar" type="submit">×</button></div>
+      <p>Los datos predeterminados pertenecen a la entrega. Los cambios hechos aquí se guardan solamente en este navegador.</p>
+      <label>Integrante 1<input id="memberOne" autocomplete="name" placeholder="Nombre completo"></label>
+      <label>Integrante 2<input id="memberTwo" autocomplete="name" placeholder="Nombre completo"></label>
+      <div class="field-row two"><label>Asignatura<input id="courseName" value="Investigación de Operaciones"></label><label>Sección (opcional)<input id="sectionName" placeholder="No aplica si el curso no usa secciones"></label></div>
+      <button class="primary full" id="saveIdentity" value="default" type="submit">Guardar identificación</button>
+    </form>
+  </dialog>
+
+  <template id="constraintTemplate">
+    <div class="constraint-row">
+      <span class="constraint-number"></span>
+      <label><span class="sr-only">Coeficiente de x</span><input class="con-a" type="number" step="any" value="1"></label><span>x +</span>
+      <label><span class="sr-only">Coeficiente de y</span><input class="con-b" type="number" step="any" value="1"></label><span>y</span>
+      <label><span class="sr-only">Operador</span><select class="con-op"><option value="<=">≤</option><option value=">=">≥</option><option value="=">=</option></select></label>
+      <label><span class="sr-only">Término independiente</span><input class="con-rhs" type="number" step="any" value="100"></label>
+      <button class="remove-constraint" type="button" aria-label="Eliminar restricción">×</button>
+    </div>
+  </template>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="config.js"></script>
+  <script src="solver.js"></script>
+  <script src="question-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
